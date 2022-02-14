@@ -5,7 +5,7 @@ metadata:
 spec:
   forProvider:
     initialClusterVersion: "1.20"
-    location: us-west2
+    location: us-central1
     networkConfig:
       enableIntraNodeVisibility: true
     loggingService: logging.googleapis.com/kubernetes
@@ -13,7 +13,7 @@ spec:
     addonsConfig:
       gcePersistentDiskCsiDriverConfig:
         enabled: true
-    network: "default"
+    network: "limu-private-vpc"
   writeConnectionSecretToRef:
     namespace: crossplane-system
     name: gke-conn
@@ -55,6 +55,6 @@ spec:
       - "https://www.googleapis.com/auth/cloud-platform"
     initialNodeCount: 1
     locations:
-      - "us-west2-a"
-      - "us-west2-b"
-      - "us-west2-c"
+      - "us-central1-a"
+      - "us-central1-b"
+      - "us-central1-c"
