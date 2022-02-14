@@ -1,35 +1,60 @@
-apiVersion: container.gcp.crossplane.io/v1beta1
-kind: GKECluster
+apiVersion: container.gcp.crossplane.io/v1beta2
+kind: Cluster
 metadata:
   name: devops-toolkit
 spec:
   forProvider:
-    location: us-east1
-    initialClusterVersion: latest
+    initialClusterVersion: "1.20"
+    location: us-west2
+    networkConfig:
+      enableIntraNodeVisibility: true
+    loggingService: logging.googleapis.com/kubernetes
+    monitoringService: monitoring.googleapis.com/kubernetes
+    addonsConfig:
+      gcePersistentDiskCsiDriverConfig:
+        enabled: true
+    network: "default"
+  writeConnectionSecretToRef:
+    namespace: crossplane-system
+    name: gke-conn
 
 ---
 
-apiVersion: container.gcp.crossplane.io/v1alpha1
+apiVersion: container.gcp.crossplane.io/v1beta1
 kind: NodePool
 metadata:
   name: devops-toolkit
 spec:
   forProvider:
-    locations:
-    - us-east1-b
-    - us-east1-c
-    - us-east1-d
+    autoscaling:
+      autoprovisioned: false
+      enabled: true
+      maxNodeCount: 3
+      minNodeCount: 1
+    management:
+      autoUpgrade: false
     clusterRef:
       name: devops-toolkit
-    initialNodeCount: 1
     config:
       preemptible: true
       machineType: e2-standard-2
+      sandboxConfig:
+        type: gvisor
+      diskSizeGb: 120
+      diskType: pd-ssd
+      imageType: cos_containerd
+      labels:
+        test-label: crossplane-created
       oauthScopes:
-      - https://www.googleapis.com/auth/cloud-platform
-    autoscaling:
-      enabled: true
-      minNodeCount: 1
-      maxNodeCount: 2
-    management:
-      autoUpgrade: false
+      - "https://www.googleapis.com/auth/devstorage.read_only"
+      - "https://www.googleapis.com/auth/logging.write"
+      - "https://www.googleapis.com/auth/monitoring"
+      - "https://www.googleapis.com/auth/servicecontrol"
+      - "https://www.googleapis.com/auth/service.management.readonly"
+      - "https://www.googleapis.com/auth/trace.append"
+      - "https://www.googleapis.com/auth/cloud-platform"
+    initialNodeCount: 1
+    locations:
+      - "us-west2-a"
+      - "us-west2-b"
+      - "us-west2-c"
